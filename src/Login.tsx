@@ -18,39 +18,48 @@ const Login: React.FC = () => {
 
         try {
             loginTrace.putAttribute("step", "started_login"); // Agregar atributo al trace
+            console.log(`[Trace] Login Flow Trace Started at ${timestamp}`);
 
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
             // Logs: Registrar evento de inicio de sesión exitoso
-            logEvent(analytics, "login_success", {
+            const logSuccess = {
+                event: "login_success",
                 email,
                 timestamp,
                 action: "User logged in successfully",
-            });
+            };
+            logEvent(analytics, "login_success", logSuccess);
+            console.log("[Log] Login Successful Event:", logSuccess);
 
             // Métricas: Agregar un contador de éxito
             loginTrace.putMetric("success", 1);
             loginTrace.putAttribute("step", "login_successful");
+            console.log(`[Metrics] Success Metric Recorded for ${email}`);
 
             console.log("Login successful:", userCredential);
             navigate("/home"); // Redirigir al usuario
         } catch (err: any) {
             // Logs: Registrar evento de error en el inicio de sesión
-            logEvent(analytics, "login_error", {
+            const logError = {
+                event: "login_error",
                 email,
                 timestamp,
                 action: "Login attempt failed",
                 error: err.message,
-            });
+            };
+            logEvent(analytics, "login_error", logError);
+            console.error("[Log] Login Error Event:", logError);
 
             // Métricas: Agregar un contador de error
             loginTrace.putMetric("error", 1);
             loginTrace.putAttribute("step", "login_failed");
+            console.error(`[Metrics] Error Metric Recorded for ${email}`);
 
-            console.error("Login error:", err);
             setError(err.message);
         } finally {
             loginTrace.stop(); // Finalizar el trace
+            console.log(`[Trace] Login Flow Trace Stopped at ${new Date().toISOString()}`);
         }
     };
 
